@@ -46,8 +46,8 @@ class FileObjectAPI(object):
 
     @cached_property
     def filetype(self):
-        if self.is_folder:
-            return "Folder"
+        #if self.is_folder:
+        #   return "Folder"
         return get_file_type(self.filename)
 
     @cached_property
@@ -77,7 +77,8 @@ class FileObjectAPI(object):
     @property
     def path_relative_directory(self):
         """ path relative to the path returned by get_directory() """
-        return path_strip(self.name, get_directory()).lstrip("/")
+        #return path_strip(self.name, get_directory()).lstrip("/")
+        return path_strip(self.name, get_directory()).lstrip("\\")
 
     # FOLDER ATTRIBUTES
 
@@ -90,8 +91,8 @@ class FileObjectAPI(object):
         return os.path.dirname(path_strip(os.path.join(self.head, ""), get_directory()))
 
     @cached_property
-    def is_folder(self):
-        return default_storage.isdir(self.path)
+    def is_folder(self):       
+        return default_storage.isdir(self.name)
 
     @property
     def is_empty(self):

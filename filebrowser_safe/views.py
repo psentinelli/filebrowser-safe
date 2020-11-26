@@ -88,12 +88,12 @@ def browse(request):
     """
     Browse Files/Directories.
     """
-
+  
     # QUERY / PATH CHECK
     query = request.GET.copy()
     path = get_path(query.get("dir", ""))
     directory = get_path("")
-
+      
     if path is None:
         msg = _("The requested Folder does not exist.")
         messages.add_message(request, messages.ERROR, msg)
@@ -121,8 +121,9 @@ def browse(request):
 
     dir_list, file_list = default_storage.listdir(abs_path)
     files = []
+   
     for file in dir_list + file_list:
-
+       
         # EXCLUDE FILES MATCHING ANY OF THE EXCLUDE PATTERNS
         filtered = not file or file.startswith(".")
         for re_prefix in filter_re:
@@ -133,73 +134,75 @@ def browse(request):
         results_var["results_total"] += 1
 
         # CREATE FILEOBJECT
-        url_path = "/".join(
-            [
-                s.strip("/")
-                for s in [get_directory(), path.replace("\\", "/"), file]
-                if s.strip("/")
-            ]
-        )
-        fileobject = FileObject(url_path)
+        # url_path = "/".join(
+        #     [
+        #         s.strip("/")
+        #         for s in [get_directory(), path.replace("\\", "/"), file]
+        #         if s.strip("/")
+        #     ]
+        # )
+        fileobject = FileObject(abs_path+'/'+file)
 
         # FILTER / SEARCH
-        append = False
-        if (
-            fileobject.filetype == request.GET.get("filter_type", fileobject.filetype)
-            and fileobject.filetype == "Folder"
-        ):
-            append = True
-        elif fileobject.filetype == request.GET.get(
-            "filter_type", fileobject.filetype
-        ) and get_filterdate(request.GET.get("filter_date", ""), fileobject.date):
-            append = True
-        if request.GET.get("q") and not re.compile(
-            request.GET.get("q").lower(), re.M
-        ).search(file.lower()):
-            append = False
+        append = True#False
+        type=fileobject.filetype
+        # if (
+        #     fileobject.filetype == request.GET.get("filter_type", fileobject.filetype)
+        #     and fileobject.filetype == "Folder"
+        # ):
+        #     append = True
+        # elif fileobject.filetype == request.GET.get(
+        #     "filter_type", fileobject.filetype
+        # ) and get_filterdate(request.GET.get("filter_date", ""), fileobject.date):
+        #     append = True
+        # if request.GET.get("q") and not re.compile(
+        #     request.GET.get("q").lower(), re.M
+        # ).search(file.lower()):
+        #     append = False
 
         # APPEND FILE_LIST
         if append:
             try:
-                # COUNTER/RESULTS
+                #COUNTER/RESULTS
                 results_var["delete_total"] += 1
-                if fileobject.filetype == "Image":
+                if type == "Image":
                     results_var["images_total"] += 1
                 if (
                     query.get("type")
                     and query.get("type") in fb_settings.SELECT_FORMATS
-                    and fileobject.filetype
+                    and type
                     in fb_settings.SELECT_FORMATS[query.get("type")]
                 ):
                     results_var["select_total"] += 1
                 elif not query.get("type"):
                     results_var["select_total"] += 1
             except OSError:
-                # Ignore items that have problems
+                #Ignore items that have problems
                 continue
             else:
                 files.append(fileobject)
                 results_var["results_current"] += 1
 
         # COUNTER/RESULTS
-        if fileobject.filetype:
-            counter[fileobject.filetype] += 1
+        #files.append(fileobject)
+        if type:
+            counter[type] += 1
 
-    # SORTING
-    query["o"] = request.GET.get("o", fb_settings.DEFAULT_SORTING_BY)
-    query["ot"] = request.GET.get("ot", fb_settings.DEFAULT_SORTING_ORDER)
-    defaultValue = ""
-    if query["o"] in ["date", "filesize"]:
-        defaultValue = 0.0
-    files = sorted(files, key=lambda f: getattr(f, query["o"]) or defaultValue)
-    if (
-        not request.GET.get("ot")
-        and fb_settings.DEFAULT_SORTING_ORDER == "desc"
-        or request.GET.get("ot") == "desc"
-    ):
-        files.reverse()
-
-    p = Paginator(files, fb_settings.LIST_PER_PAGE)
+    #SORTING
+    # query["o"] = request.GET.get("o", fb_settings.DEFAULT_SORTING_BY)
+    # query["ot"] = request.GET.get("ot", fb_settings.DEFAULT_SORTING_ORDER)
+    # defaultValue = ""
+    # if query["o"] in ["date", "filesize"]:
+    #     defaultValue = 0.0
+    # files = sorted(files, key=lambda f: getattr(f, query["o"]) or defaultValue)
+    # if (
+    #     not request.GET.get("ot")
+    #     and fb_settings.DEFAULT_SORTING_ORDER == "desc"
+    #     or request.GET.get("ot") == "desc"
+    # ):
+    #     files.reverse()
+   
+    p = Paginator(files, 10)
     try:
         page_nr = request.GET.get("p", "1")
     except:  # noqa
@@ -208,7 +211,7 @@ def browse(request):
         page = p.page(page_nr)
     except (EmptyPage, InvalidPage):
         page = p.page(p.num_pages)
-
+    
     return render(
         request,
         "filebrowser/index.html",
@@ -375,6 +378,7 @@ def _upload_file(request):
     """
     Upload file to the server.
     """
+    
     if request.method == "POST":
         folder = request.POST.get("folder")
         fb_uploadurl_re = re.compile(r"^.*(%s)" % reverse("fb_upload"))
@@ -398,9 +402,11 @@ def _upload_file(request):
             # Try and remove both original and normalised thumb names,
             # in case files were added programmatically outside FB.
             file_path = os.path.join(directory, folder, filedata.name)
+            file_path=file_path.replace("\\","/")
             remove_thumbnails(file_path)
             filedata.name = convert_filename(filedata.name)
             file_path = os.path.join(directory, folder, filedata.name)
+            file_path=file_path.replace("\\","/")
             remove_thumbnails(file_path)
 
             if (
@@ -427,6 +433,7 @@ def _upload_file(request):
         get_params = request.POST.get("get_params")
         if get_params:
             return HttpResponseRedirect(reverse("fb_browse") + get_params)
+           
     return HttpResponse("True")
 
 
@@ -442,7 +449,6 @@ def delete(request):
 
     When trying to delete a Directory, the Directory has to be empty.
     """
-
     if request.method != "POST":
         return HttpResponseRedirect(reverse("fb_browse"))
 
@@ -458,7 +464,7 @@ def delete(request):
         messages.add_message(request, messages.ERROR, msg)
         return HttpResponseRedirect(reverse("fb_browse"))
     abs_path = os.path.join(get_directory(), path)
-
+   
     normalized = os.path.normpath(os.path.join(get_directory(), path, filename))
 
     if not normalized.startswith(get_directory().strip("/")) or ".." in normalized:
@@ -483,7 +489,7 @@ def delete(request):
             # PRE DELETE SIGNAL
             filebrowser_pre_delete.send(sender=request, path=path, filename=filename)
             # DELETE FOLDER
-            default_storage.rmtree(os.path.join(abs_path, filename))
+            default_storage.rmtree(abs_path+'/'+filename)
             # POST DELETE SIGNAL
             filebrowser_post_delete.send(sender=request, path=path, filename=filename)
             # MESSAGE & REDIRECT

@@ -18,13 +18,15 @@ def get_directory():
     """
     from mezzanine.conf import settings as mezz_settings
     from mezzanine.utils.sites import current_site_id
-
+    
     dirname = fb_settings.DIRECTORY
     if getattr(mezz_settings, "MEDIA_LIBRARY_PER_SITE", False):
         dirname = os.path.join(dirname, "site-%s" % current_site_id())
+     
     fullpath = os.path.join(mezz_settings.MEDIA_ROOT, dirname)
-    if not default_storage.isdir(fullpath):
-        default_storage.makedirs(fullpath)
+   
+    #if not default_storage.isdir(fullpath):
+    #    default_storage.makedirs(fullpath)
     return dirname
 
 
@@ -87,10 +89,11 @@ def get_path(path):
     """
     Get Path.
     """
+    
     if (
         path.startswith(".")
         or os.path.isabs(path)
-        or not default_storage.isdir(os.path.join(get_directory(), path))
+       # or not default_storage.isdir(os.path.join(get_directory(), path))
     ):
         return None
     return path
@@ -174,12 +177,16 @@ def get_file_type(filename):
     """
     Get file type as defined in EXTENSIONS.
     """
-    file_extension = os.path.splitext(filename)[1].lower()
     file_type = ""
-    for k, v in fb_settings.EXTENSIONS.items():
-        for extension in v:
-            if file_extension == extension.lower():
-                file_type = k
+    file_extension = os.path.splitext(filename)[1].lower()
+    if file_extension == '':
+        file_type = "Folder"
+    else:
+        for k, v in fb_settings.EXTENSIONS.items():
+            for extension in v:
+                if file_extension == extension.lower():
+                    file_type = k
+
     return file_type
 
 
