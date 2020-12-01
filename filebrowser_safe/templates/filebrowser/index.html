@@ -55,6 +55,13 @@
 
 <!-- CONTENT -->
 {% block content %}
+<link rel="stylesheet" href="/static/css/DT_bootstrap.css">
+<script src="/static/js/bootstrap.js"></script>
+<script src="/static/js/bootstrap-extras.js"></script>
+
+<script src="/static/js/jquery.min.js"></script>
+
+
 <div id="content-main">
     {% block object-tools %}
     <ul class="object-tools">
@@ -67,7 +74,7 @@
             <div class="result-list-container">
                 {% if results_var.results_current %}
                 <div class="result-list">
-                    <table cellspacing="0">
+                    <table class="table" id="publications">
                         {% include "filebrowser/include/tableheader.html" %}
                         <tbody>
                         {% include "filebrowser/include/filelisting.html" %}
@@ -85,5 +92,6 @@
             </div>
         </div>
     </div>
-</div>
+</div><script src="{% static "js/jquery.dataTables.js" %}"></script> 
+<script src="{% static "js/DT_bootstrap.js" %}"></script>
 {% endblock %}
