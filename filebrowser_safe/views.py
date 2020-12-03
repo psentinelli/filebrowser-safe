@@ -106,7 +106,7 @@ def browse(request):
         redirect_url = reverse("fb_browse") + query_helper(query, "", "dir")
         return HttpResponseRedirect(redirect_url)
     abs_path = os.path.join(get_directory(), path)
-
+   
     # INITIAL VARIABLES
     results_var = {
         "results_total": 0,
@@ -118,19 +118,36 @@ def browse(request):
     counter = {}
     for k, v in fb_settings.EXTENSIONS.items():
         counter[k] = 0
-
-    dir_list, file_list = default_storage.listdir(abs_path)
+    
     files = []
-   
-    for file in dir_list + file_list:
-       
-        # EXCLUDE FILES MATCHING ANY OF THE EXCLUDE PATTERNS
-        filtered = not file or file.startswith(".")
+    
+    #SORTING
+    query["o"] = request.GET.get("o", fb_settings.DEFAULT_SORTING_BY)
+    query["ot"] = request.GET.get("ot", fb_settings.DEFAULT_SORTING_ORDER)
+  
+    defaultValue = ""
+    if query["o"] in ["date", "filesize"]:
+        defaultValue = 0.0
+     
+    dir_list, file_list =[],[]
+    
+    order=True
+    if query["ot"] == "desc":
+            order=True
+        elif query["ot"] == "asc":
+            order=False  
+
+    if query["o"] in ["date","filename_lower", "filetype","filesize"] :
+        dir_list, file_list = default_storage.listdir(abs_path,order,query["o"])     
+    
+    for file in  dir_list + file_list:
+         # EXCLUDE FILES MATCHING ANY OF THE EXCLUDE PATTERNS
+        filtered = not file or file.startswith(".") or file.startswith("_")
         for re_prefix in filter_re:
-            if re_prefix.search(file):
-                filtered = True
+             if re_prefix.search(file):
+                  filtered = True
         if filtered:
-            continue
+              continue
         results_var["results_total"] += 1
 
         # CREATE FILEOBJECT
@@ -142,7 +159,7 @@ def browse(request):
         #     ]
         # )
         fileobject = FileObject(abs_path+'/'+file)
-
+        
         # FILTER / SEARCH
         append = True#False
         type=fileobject.filetype
@@ -188,21 +205,8 @@ def browse(request):
         if type:
             counter[type] += 1
 
-    #SORTING
-    # query["o"] = request.GET.get("o", fb_settings.DEFAULT_SORTING_BY)
-    # query["ot"] = request.GET.get("ot", fb_settings.DEFAULT_SORTING_ORDER)
-    # defaultValue = ""
-    # if query["o"] in ["date", "filesize"]:
-    #     defaultValue = 0.0
-    # files = sorted(files, key=lambda f: getattr(f, query["o"]) or defaultValue)
-    # if (
-    #     not request.GET.get("ot")
-    #     and fb_settings.DEFAULT_SORTING_ORDER == "desc"
-    #     or request.GET.get("ot") == "desc"
-    # ):
-    #     files.reverse()
-   
-    p = Paginator(files, 10)
+  
+    p = Paginator(files,10)
     try:
         page_nr = request.GET.get("p", "1")
     except:  # noqa

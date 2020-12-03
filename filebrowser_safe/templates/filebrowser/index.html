@@ -55,11 +55,13 @@
 
 <!-- CONTENT -->
 {% block content %}
-<link rel="stylesheet" href="/static/css/DT_bootstrap.css">
+<!--link rel="stylesheet" href="/static/css/DT_bootstrap.css">
+
+
 <script src="/static/js/bootstrap.js"></script>
 <script src="/static/js/bootstrap-extras.js"></script>
-
-<script src="/static/js/jquery.min.js"></script>
+<script src="/static/js/chosen.jquery.min.js"></script>
+<script src="/static/js/jquery.min.js"></script-->
 
 
 <div id="content-main">
@@ -74,7 +76,8 @@
             <div class="result-list-container">
                 {% if results_var.results_current %}
                 <div class="result-list">
-                    <table class="table" id="publications">
+                    <!--table class="table" id="filebrowser"-->
+                        <table cellspacing="0">
                         {% include "filebrowser/include/tableheader.html" %}
                         <tbody>
                         {% include "filebrowser/include/filelisting.html" %}
