@@ -79,7 +79,7 @@ h1 {margin:-30px 0 15px 0;}
 
     <!-- FILENAME/DIMENSIONS -->
     {% ifequal file.filetype 'Folder' %}
-    <td><b><a href="{% url "fb_browse" %}{% query_string "" "q,dir,p" %}&amp;dir={{ file.path_relative_directory|urlencode }}">{{ file.filename }}</a></b></td>
+    <td><b><a href="{% url "fb_browse" %}{% query_string "" "q,dir,p" %}&amp;dir={{ file.filename }}">{{ file.filename }}</a></b></td>
     {% else %}
     <td><b><a href="{{ file.url }}" target="_blank">{{ file.filename }}</a></b></td>
     {% endifequal %}
